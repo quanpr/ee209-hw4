@@ -27,7 +27,7 @@ class robot:
 		self.RRTree = []
 		self.Dx = len(o_space)
 		self.Dy = len(o_space[0])
-		self.theta_range = 18
+		#self.theta_range = 18
 		self.bias = 0.8
 		self.threshold = 10
 
@@ -101,7 +101,7 @@ class robot:
 
 	def plot_tree(self):
 		plt.figure()
-		plt.imshow(self.default_map)
+		plt.imshow(self.default_map, cmap='gray')
 
 		for node in self.RRTree:
 			if node['parent'] is not None:
@@ -120,12 +120,15 @@ class robot:
 
 		fail_attempt = 0
 		while fail_attempt <= self.max_fail:
+			#random.seed(0)
 			if random.uniform(0,1) < self.bias:
-				random.seed(0)
 				rand_x, rand_y = random.randint(0, self.Dx-1), random.randint(0, self.Dy-1)
 			else:
 				rand_x, rand_y = self.goal_idx[0], self.goal_idx[1]
+
+			# return the nearest idx
 			nearest_idx = self.nearest_k_neighbor((rand_x, rand_y, 0), 1)
+			# position of the nearest idx
 			idx_position = self.RRTree[nearest]['idx']
 			rand = (rand_x, rand_y, self.determine_angle(position, (rand_x, rand_y, 0)))
 
@@ -143,6 +146,14 @@ class robot:
 			if distance_to_goal < self.threshold and \
 				valiadate_new_node(new_move, self.goal_idx):
 				self.found_path = True
+				break
+
+			idx_in_tree = self.nearest_k_neighbor(idx_position, 1)
+			node_in_tree = self.RRTree[idx_in_tree]['idx']
+			if distance(node_in_tree, idx_position) < self.threshold:
+				# fail attempt
+				fail_attempt += 1
+				continue
 
 
 
