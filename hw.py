@@ -39,11 +39,11 @@ class robot:
 		if dx > 0 and dy >= 0:
 			return theta
 		elif dx < 0 and dy >= 0:
-			return theta + np.pi/2
+			return np.pi-theta
 		elif dx < 0 and dy < 0:
 			return theta + np.pi
 		else:
-			return theta + 3*2*np.pi
+			return 2*np.pi-theta
 
 	def generate_new_path(self, start, end):
 		result = []
@@ -59,7 +59,7 @@ class robot:
 	def check_node(self, node):
 		if self.o_space[node[0]][node[1]] == 0:
 			return True
-		elif self.o_space[node[0]][node[1]] == 125 and np.pi<=node[2]<=2*np.pi:
+		elif self.o_space[node[0]][node[1]] == 125 and np.pi/2<=node[2]<=3/2*np.pi:
 			return True
 		else:
 			return False
@@ -76,7 +76,7 @@ class robot:
 			# j: distance, i: correpsonding index
 			d = [(j, i) for i, j in enumerate([distance(target_idx, node_idx['idx']) for node_idx in self.RRTree])]
 			nearest =  min(d, key=lambda x:x[0])
-			return (self.RRTree[nearest[1]]['idx'], nearest[0])
+			return nearest[1]
 		else:
 			import heapq
 			# j: distance, i: correpsonding index
@@ -87,7 +87,7 @@ class robot:
 					heapq.heappush(result, idx)
 				else:
 					heap.heappushpop(result, idx)
-			return result
+			return [node[1] for node in result]
 
 	def generate_next_move(self, start, rand):
 		dx, dy = rand[0]-start[0], rand[1]-start[1]
@@ -101,10 +101,13 @@ class robot:
 
 	def plot_tree(self):
 		plt.figure()
+		plt.imshow(self.default_map)
+
 		for node in self.RRTree:
 			if node['parent'] is not None:
 				plt.plot([node['idx'][0], self.RRTree[node['parent']]['idx'][0]],
 						[node['idx'][1], self.RRTree[node['parent']]['idx'][1]], '-b')
+
 		plt.plot(self.initial_idx[0], self.initial_idx[1], 'xr')
 		plt.plot(self.goal_idx[0], self.goal_idx[1], 'xr')
 		plt.grid()
@@ -122,20 +125,21 @@ class robot:
 				rand_x, rand_y = random.randint(0, self.Dx-1), random.randint(0, self.Dy-1)
 			else:
 				rand_x, rand_y = self.goal_idx[0], self.goal_idx[1]
-			nearest = self.nearest_k_neighbor((rand_x, rand_y, 0), 1)
-			rand = (rand_x, rand_y, self.determine_angle(nearest[0], (rand_x, rand_y, 0)))
+			nearest_idx = self.nearest_k_neighbor((rand_x, rand_y, 0), 1)
+			idx_position = self.RRTree[nearest]['idx']
+			rand = (rand_x, rand_y, self.determine_angle(position, (rand_x, rand_y, 0)))
 
-			new_move = self.generate_next_move(nearest[0], rand)
-			if not self.valiadate_new_node(nearest[0], new_move):
+			new_move = self.generate_next_move(idx_position, rand)
+			if not self.valiadate_new_node(idx_position, new_move):
 				fail_attempt += 1
 				continue
 
-			new_move_distance = self.RRTree[nearest[1]][distance] + distance(new_move, nearest[0])
+			new_move_distance = self.RRTree[nearest_idx]['distance'] + distance(new_move, idx_position)
 			self.RRTree.append({'idx': new_move,
-								'parent':nearest[1],
+								'parent':nearest_idx,
 								'distance':new_move_distance})
 
-			distance_to_goal = distance(nearest[0], self.goal_idx)
+			distance_to_goal = distance(idx_position, self.goal_idx)
 			if distance_to_goal < self.threshold and \
 				valiadate_new_node(new_move, self.goal_idx):
 				self.found_path = True
