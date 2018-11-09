@@ -23,6 +23,8 @@ for i in range(150, 200):
 	sample2_map[i][100:400] = [125]*(400-100)
 for i in range(200,250):
 	sample2_map[i][100:400] = [0]*(400-100)
+for i in range(250, 300):
+	sample2_map[i][100:400] = [75]*(400-100)
 for i in range(300, 350):
 	sample2_map[i][100:400] = [0]*(400-100)
 for i in range(350, 400):
@@ -51,9 +53,7 @@ class robot:
 		self.Dx = len(o_space)
 		self.Dy = len(o_space[0])
 		#self.theta_range = 18
-
-		self.bias = 0.5
-
+		self.bias = 0.8
 		self.threshold = 10
 
 		self.RRTree.append({'idx':self.initial_idx, 'parent':None,
@@ -89,7 +89,7 @@ class robot:
 	def check_node(self, node):
 		if self.o_space[node[0]][node[1]] == 255:
 			return True
-		elif self.o_space[node[0]][node[1]] == 125 and 0<=node[2]<=np.pi:
+		elif self.o_space[node[0]][node[1]] == 125 and (0<=node[2]<=np.pi):
 			return True
 		elif self.o_space[node[0]][node[1]] == 75 and (np.pi<=node[2]<=2*np.pi):
 			return True
@@ -181,6 +181,7 @@ class robot:
 			self.RRTree.append({'idx': new_move,
 								'parent':nearest_idx,
 								'distance':new_move_distance})
+
 			self.plot_tree()
 
 			# RRTree optimal
@@ -202,10 +203,9 @@ class robot:
 								'distance':0})
 				self.plot_tree()
 				break
-			
+
 
 if __name__ == '__main__':
-
 	initial_idx, goal_idx = (10, 20, np.pi), (375, 375, 0)
 	robot = robot(initial_idx, goal_idx, 30,sample2_map, optimal_tree=True, neighbor_to_count=5)
 	#print(robot.generate_new_path(initial_idx, goal_idx))
