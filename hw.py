@@ -71,7 +71,7 @@ class robot:
 	def nearest_k_neighbor(self, target_idx, num_of_neighbor=1):
 		def distance(start, end):
 			#return (1/(sum(len(start)))*sum([(start[i]-end[i])**2 for i in range(len(start))]))**0.5
-			return (1/2*((start[0]-end[0])**2+(start[1]-end[1])))**0.5
+			return ((start[0]-end[0])**2+(start[1]-end[1])**2)**0.5
 		if num_of_neighbor == 1:
 			# j: distance, i: correpsonding index
 			d = [(j, i) for i, j in enumerate([distance(target_idx, node_idx['idx']) for node_idx in self.RRTree])]
@@ -117,7 +117,7 @@ class robot:
 	def planning(self):
 
 		def distance(start, end):
-			return (1/2*((start[0]-end[0])**2+(start[1]-end[1])))**0.5
+			return ((start[0]-end[0])**2+(start[1]-end[1])**2)**0.5
 
 		fail_attempt = 0
 		while fail_attempt <= self.max_fail:
