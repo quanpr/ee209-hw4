@@ -39,7 +39,7 @@ for i in range(400, 512):
 	sample1_map[i][300:400] = [0]*(400-300)
 
 class robot:
-	def __init__(self, initial_idx, goal_idx, Da=8, o_space=default_map):
+	def __init__(self, initial_idx, goal_idx, Da=8, o_space=default_map, optimal_tree=False, neighbor_to_count=5):
 		self.initial_idx = initial_idx
 		self.goal_idx = goal_idx
 		self.Da = Da
@@ -58,6 +58,8 @@ class robot:
 
 		self.RRTree.append({'idx':self.initial_idx, 'parent':None,
 							'distance':0})
+		self.optimal_tree=optimal_tree
+		self.neighbor_to_count=neighbor_to_count
 
 	def determine_angle(self, start, end):
 		dx, dy = end[0]-start[0], end[1]-start[1]
@@ -108,17 +110,10 @@ class robot:
 			nearest =  min(d, key=lambda x:x[0])
 			return nearest[1]
 		else:
-			# improve KNN sorting with heap
-			import heapq
 			# j: distance, i: correpsonding index
 			d = [(j, i) for i, j in enumerate([distance(target_idx, node_idx['idx']) for node_idx in self.RRTree])]
-			result = []
-			for idx in d:
-				if len(result) < num_of_neighbor:
-					heapq.heappush(result, idx)
-				else:
-					heap.heappushpop(result, idx)
-			return [node[1] for node in result]
+			result = sorted(d[:-1])[:num_of_neighbor]
+			return [d[1] for d in result]
 
 	def generate_next_move(self, start, rand):
 		dx, dy = rand[0]-start[0], rand[1]-start[1]
@@ -166,7 +161,9 @@ class robot:
 			rand = (rand_x, rand_y, self.determine_angle(idx_position, (rand_x, rand_y, 0)))
 
 			new_move = self.generate_next_move(idx_position, rand)
-			#pdb.set_trace()
+			#if len(self.RRTree)%20 == 0:
+				#self.nearest_k_neighbor(self.RRTree[-1]['idx'], num_of_neighbor=5)
+				#pdb.set_trace()
 			if not self.valiadate_new_node(idx_position, new_move):
 				fail_attempt += 1
 				continue
@@ -186,6 +183,15 @@ class robot:
 								'distance':new_move_distance})
 			self.plot_tree()
 
+			# RRTree optimal
+			if self.optimal_tree:
+				neighbor = self.nearest_k_neighbor(self.RRTree[-1]['idx'], num_of_neighbor=self.neighbor_to_count)
+				for node in neighbor:
+					if new_move_distance+ distance(self.RRTree[node]['idx'], new_move) < self.RRTree[node]['distance']:
+						self.RRTree[node]['parent'] = len(self.RRTree)-1
+						#pdb.set_trace()
+						self.RRTree[node]['distance'] = new_move_distance + distance(self.RRTree[node]['idx'], new_move)
+
 			# check whether reach goal
 			distance_to_goal = distance(new_move, self.goal_idx)
 			if distance_to_goal < self.threshold and \
@@ -201,9 +207,7 @@ class robot:
 if __name__ == '__main__':
 
 	initial_idx, goal_idx = (10, 20, np.pi), (375, 375, 0)
-	robot = robot(initial_idx, goal_idx, 20,sample2_map)
+	robot = robot(initial_idx, goal_idx, 30,sample2_map, optimal_tree=True, neighbor_to_count=5)
 	#print(robot.generate_new_path(initial_idx, goal_idx))
-	s = robot.generate_new_path((301,302,3.14159),(139,215,2.11))
-	#pdb.set_trace()
 	robot.planning()
 	pdb.set_trace()
