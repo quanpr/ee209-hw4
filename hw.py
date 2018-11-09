@@ -168,7 +168,6 @@ class robot:
 			new_move = self.generate_next_move(idx_position, rand)
 			#pdb.set_trace()
 			if not self.valiadate_new_node(idx_position, new_move):
-				print(new_move)
 				fail_attempt += 1
 				continue
 
@@ -182,7 +181,11 @@ class robot:
 
 
 			new_move_distance = self.RRTree[nearest_idx]['distance'] + distance(new_move, idx_position)
+			self.RRTree.append({'idx': new_move,
+								'parent':nearest_idx,
+								'distance':new_move_distance})
 
+			self.plot_tree()
 
 			# check whether reach goal
 			distance_to_goal = distance(new_move, self.goal_idx)
@@ -195,18 +198,6 @@ class robot:
 				self.plot_tree()
 				break
 
-			#pdb.set_trace()
-			idx_in_tree = self.nearest_k_neighbor(idx_position, 1)
-			node_in_tree = self.RRTree[idx_in_tree]['idx']
-			if distance(node_in_tree, new_move) < self.threshold:
-				# fail attempt
-				fail_attempt += 1
-				continue
-			self.RRTree.append({'idx': new_move,
-								'parent':nearest_idx,
-								'distance':new_move_distance})
-
-			self.plot_tree()
 
 if __name__ == '__main__':
 	initial_idx, goal_idx = (10, 20, np.pi), (375, 375, 0)
