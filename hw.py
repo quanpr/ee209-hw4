@@ -16,7 +16,7 @@ for j in range(200, 400):
 
 
 class robot:
-	def __init__(self, initial_idx, goal_idx, Da=8, e_space=default_map):
+	def __init__(self, initial_idx, goal_idx, Da=8, o_space=default_map):
 		self.initial_idx = initial_idx
 		self.goal_idx = goal_idx
 		self.Da = Da
@@ -29,10 +29,10 @@ class robot:
 		self.Dy = len(o_space[0])
 		#self.theta_range = 18
 		self.bias = 0.8
-		self.threshold = 10
+		self.threshold = 3
 
 	def determine_angle(self, start, end):
-		dx, dy = rand[0]-start[0], rand[1]-start[1]
+		dx, dy = end[0]-start[0], end[1]-start[1]
 		if dx == 0:
 			return np.pi/2 if dy > 0 else 3/2*np.pi
 		theta = np.arctan(abs(dy/dx))
@@ -52,7 +52,7 @@ class robot:
 			result = [(start[0], start[1]+i, end[2]) for i in range(1,dy+1)]
 		else:
 			for i in range(1, abs(dx)+1):
-				node = (start[0]+i, start[1]+int(i*dy/dx), end[2])
+				node = (start[0]+i*abs(dx)/dx, start[1]+int(i*dy/dx), end[2])
 				result.append(node)
 		return result
 
@@ -78,6 +78,7 @@ class robot:
 			nearest =  min(d, key=lambda x:x[0])
 			return nearest[1]
 		else:
+			# improve KNN sorting with heap
 			import heapq
 			# j: distance, i: correpsonding index
 			d = [(j, i) for i, j in enumerate([distance(target_idx, node_idx['idx']) for node_idx in self.RRTree])]
@@ -95,8 +96,8 @@ class robot:
 			return (x, y + self.Da, rand[2])
 		else:
 			theta = np.arctan(abs(dy/dx))
-			x = start[0] + self.Da*np.cos(theta) if dx > 0 else start[0] - self.Da*np.cos(theta)
-			y = start[1] + self.Da*np.sin(theta) if dy > 0 else start[1] - self.Da*np.sin(theta)
+			x = start[0] + int(self.Da*np.cos(theta)) if dx > 0 else int(start[0] - self.Da*np.cos(theta))
+			y = start[1] + int(self.Da*np.sin(theta)) if dy > 0 else int(start[1] - self.Da*np.sin(theta))
 			return (max(0, min(x, self.Dx)), max(0, min(y, self.Dy)), rand[2])
 
 	def plot_tree(self):
@@ -146,6 +147,9 @@ class robot:
 			if distance_to_goal < self.threshold and \
 				valiadate_new_node(new_move, self.goal_idx):
 				self.found_path = True
+				self.RRTree.append({'idx': self.goal_idx,
+								'parent':len(self.RRTree)-1,
+								'distance':0})
 				break
 
 			idx_in_tree = self.nearest_k_neighbor(idx_position, 1)
@@ -155,6 +159,11 @@ class robot:
 				fail_attempt += 1
 				continue
 
+if __name__ == '__main__':
+	initial_idx, goal_idx = (10, 20, np.pi), (17, 26, 0)
+	robot = robot(initial_idx, goal_idx, 10)
+	print(robot.generate_new_path(initial_idx, goal_idx))
+	pdb.set_trace()
 
 
 
