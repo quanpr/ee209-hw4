@@ -28,8 +28,8 @@ class robot:
 		self.Dx = len(o_space)
 		self.Dy = len(o_space[0])
 		#self.theta_range = 18
-		self.bias = 0.8
-		self.threshold = 3
+		self.bias = 0.5
+		self.threshold = 10
 
 		self.RRTree.append({'idx':self.initial_idx, 'parent':None,
 							'distance':0})
@@ -62,7 +62,7 @@ class robot:
 	def check_node(self, node):
 		if self.o_space[node[0]][node[1]] == 255:
 			return True
-		elif self.o_space[node[0]][node[1]] == 125 and (0<=node[2]<=1/2*np.pi or 3/2*np.pi<=node[2]<=2*np.pi):
+		elif self.o_space[node[0]][node[1]] == 125 and 0<=node[2]<=np.pi:
 			return True
 		else:
 			return False
@@ -173,10 +173,10 @@ class robot:
 			
 
 if __name__ == '__main__':
-	initial_idx, goal_idx = (150, 198, np.pi), (500, 500, 0)
+	initial_idx, goal_idx = (10, 20, np.pi), (500, 500, 0)
 	robot = robot(initial_idx, goal_idx, 20)
 	#print(robot.generate_new_path(initial_idx, goal_idx))
-	s = robot.generate_new_path((150,198,3.14159),(139,215,2.11))
+	s = robot.generate_new_path((301,302,3.14159),(139,215,2.11))
 	#pdb.set_trace()
 	robot.planning()
 	pdb.set_trace()
