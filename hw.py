@@ -31,6 +31,9 @@ class robot:
 		self.bias = 0.8
 		self.threshold = 3
 
+		self.RRTree.append({'idx':self.initial_idx, 'parent':None,
+							'distance':((self.initial_idx[0]-self.goal_idx[0])**2+(self.initial_idx[1]-self.goal_idx[1])**2)**0.5})
+
 	def determine_angle(self, start, end):
 		dx, dy = end[0]-start[0], end[1]-start[1]
 		if dx == 0:
@@ -130,9 +133,10 @@ class robot:
 			# return the nearest idx
 			nearest_idx = self.nearest_k_neighbor((rand_x, rand_y, 0), 1)
 			# position of the nearest idx
-			idx_position = self.RRTree[nearest]['idx']
-			rand = (rand_x, rand_y, self.determine_angle(position, (rand_x, rand_y, 0)))
+			idx_position = self.RRTree[nearest_idx]['idx']
+			rand = (rand_x, rand_y, self.determine_angle(idx_position, (rand_x, rand_y, 0)))
 
+			pdb.set_trace()
 			new_move = self.generate_next_move(idx_position, rand)
 			if not self.valiadate_new_node(idx_position, new_move):
 				fail_attempt += 1
@@ -159,10 +163,13 @@ class robot:
 				fail_attempt += 1
 				continue
 
+			self.plot_tree()
+
 if __name__ == '__main__':
-	initial_idx, goal_idx = (10, 20, np.pi), (17, 26, 0)
+	initial_idx, goal_idx = (10, 20, np.pi), (500, 500, 0)
 	robot = robot(initial_idx, goal_idx, 10)
-	print(robot.generate_new_path(initial_idx, goal_idx))
+	#print(robot.generate_new_path(initial_idx, goal_idx))
+	robot.planning()
 	pdb.set_trace()
 
 
