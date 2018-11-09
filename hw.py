@@ -181,20 +181,11 @@ class robot:
 
 
 			new_move_distance = self.RRTree[nearest_idx]['distance'] + distance(new_move, idx_position)
-
-
-			#pdb.set_trace()
-			idx_in_tree = self.nearest_k_neighbor(idx_position, 1)
-			node_in_tree = self.RRTree[idx_in_tree]['idx']
-			if distance(node_in_tree, new_move) < self.threshold:
-				# fail attempt
-				fail_attempt += 1
-				continue
 			self.RRTree.append({'idx': new_move,
 								'parent':nearest_idx,
 								'distance':new_move_distance})
 			self.plot_tree()
-			
+
 			# check whether reach goal
 			distance_to_goal = distance(new_move, self.goal_idx)
 			if distance_to_goal < self.threshold and \
