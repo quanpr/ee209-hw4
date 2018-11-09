@@ -32,7 +32,7 @@ class robot:
 		self.threshold = 3
 
 		self.RRTree.append({'idx':self.initial_idx, 'parent':None,
-							'distance':((self.initial_idx[0]-self.goal_idx[0])**2+(self.initial_idx[1]-self.goal_idx[1])**2)**0.5})
+							'distance':0})
 
 	def determine_angle(self, start, end):
 		dx, dy = end[0]-start[0], end[1]-start[1]
@@ -55,12 +55,12 @@ class robot:
 			result = [(start[0], start[1]+i, end[2]) for i in range(1,dy+1)]
 		else:
 			for i in range(1, abs(dx)+1):
-				node = (start[0]+i*abs(dx)/dx, start[1]+int(i*dy/dx), end[2])
+				node = (start[0]+int(i*abs(dx)/dx), start[1]+int(i*dy/dx), end[2])
 				result.append(node)
 		return result
 
 	def check_node(self, node):
-		if self.o_space[node[0]][node[1]] == 0:
+		if self.o_space[node[0]][node[1]] == 255:
 			return True
 		elif self.o_space[node[0]][node[1]] == 125 and np.pi/2<=node[2]<=3/2*np.pi:
 			return True
@@ -96,7 +96,7 @@ class robot:
 	def generate_next_move(self, start, rand):
 		dx, dy = rand[0]-start[0], rand[1]-start[1]
 		if dx == 0:
-			return (x, y + self.Da, rand[2])
+			return (start[0], start[1] + self.Da, rand[2])
 		else:
 			theta = np.arctan(abs(dy/dx))
 			x = start[0] + int(self.Da*np.cos(theta)) if dx > 0 else int(start[0] - self.Da*np.cos(theta))
@@ -104,8 +104,9 @@ class robot:
 			return (max(0, min(x, self.Dx)), max(0, min(y, self.Dy)), rand[2])
 
 	def plot_tree(self):
-		plt.figure()
-		plt.imshow(self.default_map, cmap='gray')
+		plt.clf()
+		#plt.figure()
+		plt.imshow(self.o_space, cmap='gray')
 
 		for node in self.RRTree:
 			if node['parent'] is not None:
@@ -115,7 +116,8 @@ class robot:
 		plt.plot(self.initial_idx[0], self.initial_idx[1], 'xr')
 		plt.plot(self.goal_idx[0], self.goal_idx[1], 'xr')
 		plt.grid()
-		plt.show()
+		#plt.show()
+		plt.pause(0.01)
 
 	def planning(self):
 
@@ -136,7 +138,7 @@ class robot:
 			idx_position = self.RRTree[nearest_idx]['idx']
 			rand = (rand_x, rand_y, self.determine_angle(idx_position, (rand_x, rand_y, 0)))
 
-			pdb.set_trace()
+			#pdb.set_trace()
 			new_move = self.generate_next_move(idx_position, rand)
 			if not self.valiadate_new_node(idx_position, new_move):
 				fail_attempt += 1
@@ -147,18 +149,19 @@ class robot:
 								'parent':nearest_idx,
 								'distance':new_move_distance})
 
-			distance_to_goal = distance(idx_position, self.goal_idx)
+			distance_to_goal = distance(new_move, self.goal_idx)
 			if distance_to_goal < self.threshold and \
-				valiadate_new_node(new_move, self.goal_idx):
+				self.valiadate_new_node(new_move, self.goal_idx):
 				self.found_path = True
 				self.RRTree.append({'idx': self.goal_idx,
 								'parent':len(self.RRTree)-1,
 								'distance':0})
 				break
 
+			#pdb.set_trace()
 			idx_in_tree = self.nearest_k_neighbor(idx_position, 1)
 			node_in_tree = self.RRTree[idx_in_tree]['idx']
-			if distance(node_in_tree, idx_position) < self.threshold:
+			if distance(node_in_tree, new_move) < self.threshold:
 				# fail attempt
 				fail_attempt += 1
 				continue
