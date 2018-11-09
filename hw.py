@@ -5,8 +5,11 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import math
 import random
+from copy import deepcopy
 
 default_map = [[255]*512 for i in range(512)]
+sample1_map = deepcopy(default_map)
+sample2_map = deepcopy(default_map)
 for i in range(100, 200):
 	default_map[i][200:500] = [0]*(500-200)
 for i in range(400,500):
@@ -14,6 +17,26 @@ for i in range(400,500):
 for j in range(200, 400):
 	default_map[j][200:300] = [125]*(300-200)
 
+for i in range(50, 150):
+	sample2_map[i][100:400] = [0]*(400-100)
+for i in range(150, 200):
+	sample2_map[i][100:400] = [125]*(400-100)
+for i in range(200,250):
+	sample2_map[i][100:400] = [0]*(400-100)
+for i in range(300, 350):
+	sample2_map[i][100:400] = [0]*(400-100)
+for i in range(350, 400):
+	sample2_map[i][100:350] = [0]*(350-100)
+
+for i in range(100, 200):
+	sample1_map[i][100:200] = [0]*(200-100)
+	sample1_map[i][300:400] = [0]*(400-300)
+for i in range(300,400):
+	sample1_map[i][100:200] = [0]*(200-100)
+	sample1_map[i][300:400] = [0]*(400-300)
+for i in range(400, 512):
+	sample1_map[i][100:200] = [0]*(200-100)
+	sample1_map[i][300:400] = [0]*(400-300)
 
 class robot:
 	def __init__(self, initial_idx, goal_idx, Da=8, o_space=default_map):
@@ -28,7 +51,9 @@ class robot:
 		self.Dx = len(o_space)
 		self.Dy = len(o_space[0])
 		#self.theta_range = 18
+
 		self.bias = 0.5
+
 		self.threshold = 10
 
 		self.RRTree.append({'idx':self.initial_idx, 'parent':None,
@@ -63,6 +88,8 @@ class robot:
 		if self.o_space[node[0]][node[1]] == 255:
 			return True
 		elif self.o_space[node[0]][node[1]] == 125 and 0<=node[2]<=np.pi:
+			return True
+		elif self.o_space[node[0]][node[1]] == 75 and (np.pi<=node[2]<=2*np.pi):
 			return True
 		else:
 			return False
@@ -152,13 +179,22 @@ class robot:
 				fail_attempt += 1
 				continue
 
-			
+
 			new_move_distance = self.RRTree[nearest_idx]['distance'] + distance(new_move, idx_position)
+
+
+			#pdb.set_trace()
+			idx_in_tree = self.nearest_k_neighbor(idx_position, 1)
+			node_in_tree = self.RRTree[idx_in_tree]['idx']
+			if distance(node_in_tree, new_move) < self.threshold:
+				# fail attempt
+				fail_attempt += 1
+				continue
 			self.RRTree.append({'idx': new_move,
 								'parent':nearest_idx,
 								'distance':new_move_distance})
 			self.plot_tree()
-
+			
 			# check whether reach goal
 			distance_to_goal = distance(new_move, self.goal_idx)
 			if distance_to_goal < self.threshold and \
@@ -169,18 +205,14 @@ class robot:
 								'distance':0})
 				self.plot_tree()
 				break
-
 			
 
 if __name__ == '__main__':
-	initial_idx, goal_idx = (10, 20, np.pi), (500, 500, 0)
-	robot = robot(initial_idx, goal_idx, 20)
+
+	initial_idx, goal_idx = (10, 20, np.pi), (375, 375, 0)
+	robot = robot(initial_idx, goal_idx, 20,sample2_map)
 	#print(robot.generate_new_path(initial_idx, goal_idx))
 	s = robot.generate_new_path((301,302,3.14159),(139,215,2.11))
 	#pdb.set_trace()
 	robot.planning()
 	pdb.set_trace()
-
-
-
-
