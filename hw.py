@@ -5,8 +5,11 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import math
 import random
+from copy import deepcopy
 
 default_map = [[255]*512 for i in range(512)]
+sample1_map = deepcopy(default_map)
+sample2_map = deepcopy(default_map)
 for i in range(100, 200):
 	default_map[i][200:500] = [0]*(500-200)
 for i in range(400,500):
@@ -14,6 +17,24 @@ for i in range(400,500):
 for j in range(200, 400):
 	default_map[j][200:300] = [125]*(300-200)
 
+for i in range(50, 150):
+	sample2_map[i][100:400] = [0]*(400-100)
+for i in range(200,250):
+	sample2_map[i][100:400] = [0]*(400-100)
+for i in range(300, 350):
+	sample2_map[i][100:400] = [0]*(400-100)
+for i in range(350, 400):
+	sample2_map[i][100:350] = [0]*(350-100)
+
+for i in range(100, 200):
+	sample1_map[i][100:200] = [0]*(200-100)
+	sample1_map[i][300:400] = [0]*(400-300)
+for i in range(300,400):
+	sample1_map[i][100:200] = [0]*(200-100)
+	sample1_map[i][300:400] = [0]*(400-300)
+for i in range(400, 512):
+	sample1_map[i][100:200] = [0]*(200-100)
+	sample1_map[i][300:400] = [0]*(400-300)
 
 class robot:
 	def __init__(self, initial_idx, goal_idx, Da=8, o_space=default_map):
@@ -141,13 +162,12 @@ class robot:
 			#pdb.set_trace()
 			new_move = self.generate_next_move(idx_position, rand)
 			if not self.valiadate_new_node(idx_position, new_move):
+				print(new_move)
 				fail_attempt += 1
 				continue
 
 			new_move_distance = self.RRTree[nearest_idx]['distance'] + distance(new_move, idx_position)
-			self.RRTree.append({'idx': new_move,
-								'parent':nearest_idx,
-								'distance':new_move_distance})
+
 
 			distance_to_goal = distance(new_move, self.goal_idx)
 			if distance_to_goal < self.threshold and \
@@ -165,16 +185,15 @@ class robot:
 				# fail attempt
 				fail_attempt += 1
 				continue
+			self.RRTree.append({'idx': new_move,
+								'parent':nearest_idx,
+								'distance':new_move_distance})
 
 			self.plot_tree()
 
 if __name__ == '__main__':
-	initial_idx, goal_idx = (10, 20, np.pi), (500, 500, 0)
-	robot = robot(initial_idx, goal_idx, 10)
+	initial_idx, goal_idx = (10, 20, np.pi), (375, 375, 0)
+	robot = robot(initial_idx, goal_idx, 15,sample2_map)
 	#print(robot.generate_new_path(initial_idx, goal_idx))
 	robot.planning()
 	pdb.set_trace()
-
-
-
-
