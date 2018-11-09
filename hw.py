@@ -19,6 +19,8 @@ for j in range(200, 400):
 
 for i in range(50, 150):
 	sample2_map[i][100:400] = [0]*(400-100)
+for i in range(150, 200):
+	sample2_map[i][100:400] = [125]*(400-100)
 for i in range(200,250):
 	sample2_map[i][100:400] = [0]*(400-100)
 for i in range(300, 350):
@@ -50,7 +52,7 @@ class robot:
 		self.Dy = len(o_space[0])
 		#self.theta_range = 18
 		self.bias = 0.8
-		self.threshold = 3
+		self.threshold = 10
 
 		self.RRTree.append({'idx':self.initial_idx, 'parent':None,
 							'distance':0})
@@ -83,7 +85,9 @@ class robot:
 	def check_node(self, node):
 		if self.o_space[node[0]][node[1]] == 255:
 			return True
-		elif self.o_space[node[0]][node[1]] == 125 and (0<=node[2]<=1/2*np.pi or 3/2*np.pi<=node[2]<=2*np.pi):
+		elif self.o_space[node[0]][node[1]] == 125 and (0<=node[2]<=np.pi):
+			return True
+		elif self.o_space[node[0]][node[1]] == 75 and (np.pi<=node[2]<=2*np.pi):
 			return True
 		else:
 			return False
