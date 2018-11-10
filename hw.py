@@ -202,7 +202,14 @@ class robot:
 					self.RRTree[-1]['parent'] = new_parent[0]
 					self.RRTree[-1]['distance'] = self.RRTree[new_parent[0]]['distance'] + distance(self.RRTree[new_parent[0]]['idx'], new_move)
 
-				# for node in neighbor:
+				for node in distance_from_source :
+					# if neighbor's parent's are further than new_move, change their parents to new_move as well
+					nn_parent_idx = self.RRTree[node[0]]['parent']
+					if (self.RRTree[node[0]]['parent']!= None) and (self.RRTree[nn_parent_idx]['distance'] > self.RRTree[-1]['distance']) :
+						self.RRTree[node[0]]['parent'] = len(self.RRTree)-1
+						self.RRTree[node[0]]['distance'] = self.RRTree[-1]['distance'] + distance(self.RRTree[-1]['idx'],self.RRTree[node[0]]['idx'])
+
+				# for node in neighbor:self.RRTree[self.RRTree[node[0]]['parent']]['distance']
 				# 	if new_move_distance+ distance(self.RRTree[node]['idx'], new_move) < self.RRTree[node]['distance']:
 				# 		self.RRTree[node]['parent'] = len(self.RRTree)-1
 				# 		#pdb.set_trace()
@@ -225,4 +232,4 @@ if __name__ == '__main__':
 	robot = robot(initial_idx, goal_idx, 15,sample2_map, optimal_tree=True, neighbor_to_count=5)
 	#print(robot.generate_new_path(initial_idx, goal_idx))
 	robot.planning()
-	#pdb.set_trace()
+	pdb.set_trace()
