@@ -187,11 +187,26 @@ class robot:
 			# RRTree optimal
 			if self.optimal_tree:
 				neighbor = self.nearest_k_neighbor(self.RRTree[-1]['idx'], num_of_neighbor=self.neighbor_to_count)
-				for node in neighbor:
-					if new_move_distance+ distance(self.RRTree[node]['idx'], new_move) < self.RRTree[node]['distance']:
-						self.RRTree[node]['parent'] = len(self.RRTree)-1
-						#pdb.set_trace()
-						self.RRTree[node]['distance'] = new_move_distance + distance(self.RRTree[node]['idx'], new_move)
+
+				distance_from_source = [ (i , self.RRTree[i]['distance']) for i in neighbor]
+				still_valid = False
+
+				while(not still_valid):
+					new_parent = min(distance_from_source, key = lambda x:x[1])
+					#if new_parent no valid, remove that parent and find next closest
+					if not self.valiadate_new_node(self.RRTree[new_parent[0]]['idx'],self.RRTree[-1]['idx']):
+						distance_from_source.remove(new_parent)
+						continue
+
+					still_valid = True
+					self.RRTree[-1]['parent'] = new_parent[0]
+					self.RRTree[-1]['distance'] = self.RRTree[new_parent[0]]['distance'] + distance(self.RRTree[new_parent[0]]['idx'], new_move)
+
+				# for node in neighbor:
+				# 	if new_move_distance+ distance(self.RRTree[node]['idx'], new_move) < self.RRTree[node]['distance']:
+				# 		self.RRTree[node]['parent'] = len(self.RRTree)-1
+				# 		#pdb.set_trace()
+				# 		self.RRTree[node]['distance'] = new_move_distance + distance(self.RRTree[node]['idx'], new_move)
 
 			# check whether reach goal
 			distance_to_goal = distance(new_move, self.goal_idx)
@@ -207,7 +222,7 @@ class robot:
 
 if __name__ == '__main__':
 	initial_idx, goal_idx = (10, 20, np.pi), (375, 375, 0)
-	robot = robot(initial_idx, goal_idx, 30,sample2_map, optimal_tree=True, neighbor_to_count=5)
+	robot = robot(initial_idx, goal_idx, 15,sample2_map, optimal_tree=True, neighbor_to_count=5)
 	#print(robot.generate_new_path(initial_idx, goal_idx))
 	robot.planning()
-	pdb.set_trace()
+	#pdb.set_trace()
