@@ -135,6 +135,15 @@ class robot:
 				plt.plot([node['idx'][1], self.RRTree[node['parent']]['idx'][1]],
 						[node['idx'][0], self.RRTree[node['parent']]['idx'][0]], '-g')
 
+		if (self.found_path):
+			current_idx = -1
+			previous_idx = 0
+			while (self.RRTree[current_idx]['parent'] != None):
+				previous_idx = deepcopy(self.RRTree[current_idx]['parent'])
+				plt.plot([self.RRTree[current_idx]['idx'][1], self.RRTree[previous_idx]['idx'][1]],
+						[self.RRTree[current_idx]['idx'][0], self.RRTree[previous_idx]['idx'][0]], '-r')
+				current_idx = deepcopy(previous_idx)
+
 		plt.plot(self.initial_idx[1], self.initial_idx[0], 'xr')
 		plt.plot(self.goal_idx[1], self.goal_idx[0], 'xr')
 		plt.grid()
@@ -169,12 +178,12 @@ class robot:
 				continue
 
 			#check if pre exist in the tree
-			idx_in_tree = self.nearest_k_neighbor(idx_position, 1)
-			node_in_tree = self.RRTree[idx_in_tree]['idx']
-			if distance(node_in_tree, new_move) < self.threshold:
-				# fail attempt
-				fail_attempt += 1
-				continue
+			# idx_in_tree = self.nearest_k_neighbor(idx_position, 1)
+			# node_in_tree = self.RRTree[idx_in_tree]['idx']
+			# if distance(node_in_tree, new_move) < self.threshold:
+			# 	# fail attempt
+			# 	fail_attempt += 1
+			# 	continue
 
 
 			new_move_distance = self.RRTree[nearest_idx]['distance'] + distance(new_move, idx_position)
@@ -206,8 +215,9 @@ class robot:
 					# if neighbor's parent's are further than new_move, change their parents to new_move as well
 					nn_parent_idx = self.RRTree[node[0]]['parent']
 					if (self.RRTree[node[0]]['parent']!= None) and (self.RRTree[nn_parent_idx]['distance'] > self.RRTree[-1]['distance']) :
-						self.RRTree[node[0]]['parent'] = len(self.RRTree)-1
-						self.RRTree[node[0]]['distance'] = self.RRTree[-1]['distance'] + distance(self.RRTree[-1]['idx'],self.RRTree[node[0]]['idx'])
+						if not self.valiadate_new_node(self.RRTree[nn_parent_idx]['idx'],self.RRTree[-1]['idx']):
+							self.RRTree[node[0]]['parent'] = len(self.RRTree)-1
+							self.RRTree[node[0]]['distance'] = self.RRTree[-1]['distance'] + distance(self.RRTree[-1]['idx'],self.RRTree[node[0]]['idx'])
 
 				# for node in neighbor:self.RRTree[self.RRTree[node[0]]['parent']]['distance']
 				# 	if new_move_distance+ distance(self.RRTree[node]['idx'], new_move) < self.RRTree[node]['distance']:
